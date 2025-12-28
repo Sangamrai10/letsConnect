@@ -1,6 +1,16 @@
+import React, { useState } from "react";
+import UsernameForm from "./components/UsernameForm";
+import ChatWindow from "./features/chat/ChatWindow";
 
-export default function App() {
-  return (
-    <div className="bg-red-50">App</div>
-  )
-}
+function App() {
+  <div>letsConnect</div>
+  const [started, setStarted] = useState(false);
+
+  if (!started) {
+    return <UsernameForm onSubmit={() => setStarted(true)} />;
+  }
+
+  return <ChatWindow />;
+} 
+
+export default App;
