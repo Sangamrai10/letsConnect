@@ -26,20 +26,21 @@ export default function ChatWindow() {
   };
 
   return (
-    <div className="chat-window bg-amber-600">
-      <div className="messages">
+    <div className="chat-window container relative mx-auto p-4">
+      <div className="messages h-[500px] overflow-y-auto mb-16">
         {messages.map((msg) => (
           <Message key={msg.id} message={msg} />
         ))}
       </div>
-      <form onSubmit={handleSend} className="chat-input">
+      <form onSubmit={handleSend} className="chat-input absolute bottom-0 text-center w-full p-4 bg-white">
         <input
+        className="outline-none bg-gray-300 rounded-2xl p-2 px-4 w-3/4"
           type="text"
           placeholder="Type a message..."
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <button type="submit">Send</button>
+        <button type="submit" className="px-4 py-2 mx-2 bg-blue-500 rounded-2xl">Send</button>
       </form>
     </div>
   );

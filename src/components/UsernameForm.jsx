@@ -14,15 +14,15 @@ export default function UsernameForm({ onSubmit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="username-form bg-cyan-800">
+    <form onSubmit={handleSubmit} className="username-form flex flex-col items-center h-44">
       <input
         type="text"
         placeholder="Enter your name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="input-name bg-blue-300"
+        className="input-name outline-0 border-b px-2"
       />
-      <button type="submit" className="btn-submit">Start Chat</button>
+      <button type="submit" className="btn-submit bg-amber-400 rounded-full px-4 mt-4">Start Chat</button>
     </form>
   );
 }
