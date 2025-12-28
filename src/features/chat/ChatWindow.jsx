@@ -27,7 +27,7 @@ export default function ChatWindow() {
 
   return (
     <div className="chat-window container relative mx-auto p-4">
-      <div className="messages h-[500px] overflow-y-auto mb-16">
+      <div className="messages h-125 overflow-y-auto mb-16">
         {messages.map((msg) => (
           <Message key={msg.id} message={msg} />
         ))}
