@@ -98,7 +98,7 @@ export default function ChatWindow() {
               <em>{typingUser} is typing...</em>
             </div>
           )}
-          <UserConnected/>
+          {socketId && <UserConnected socketId={socketId} />}
           <input
             className="outline-none bg-gray-300 rounded-2xl p-2 px-4 w-3/4"
             type="text"
