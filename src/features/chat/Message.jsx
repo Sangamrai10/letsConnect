@@ -1,10 +1,23 @@
-import React from "react";
+import { useSelector } from "react-redux";
 
 export default function Message({ message }) {
-  const time = new Date(message.timestamp).toLocaleTimeString();
+  const currentUser = useSelector((state) => state.chat.user.name);
+  const isOwnMessage = message.sender === currentUser;
+
   return (
-    <div className="message">
-      <strong>{message.sender}</strong>: {message.text} <small>{time}</small>
+    <div
+      className={`flex ${
+        isOwnMessage ? "justify-end" : "justify-start"
+      }`}>
+      <div className="max-w-[70%]">
+        {!isOwnMessage && (
+          <div className="text-xs font-semibold">
+            {message.sender}
+          </div>
+        )}
+        <div>{message.text}</div>
+        
+      </div>
     </div>
   );
 }
