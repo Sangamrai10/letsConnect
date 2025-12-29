@@ -21,6 +21,7 @@ export default function ChatWindow() {
   const [text, setText] = useState("");
   const { currentRoom, rooms } = useSelector((state) => state.chat);
   const roomMessages = rooms[currentRoom].messages;
+  const [socketId, setSocketId] = useState("");
 
 
   // fake users and fake replies
@@ -65,6 +66,12 @@ export default function ChatWindow() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behaviour: "smooth" })
   }, [messages, typingUser]);
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      setSocketId(socket.id);
+    });
+  }, [socket.id]);
 
   useEffect(() => {
     socket.on("receive_message", (message) => {

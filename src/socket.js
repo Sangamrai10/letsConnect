@@ -5,7 +5,4 @@ const socket = io("https://letsconnectserver.onrender.com",
 {transports: ["websocket"]}
 );
 
-socket.on("connect", ()=>{
-  <UserConnected socketId={socket.id}/>;
-});
 export default socket;
