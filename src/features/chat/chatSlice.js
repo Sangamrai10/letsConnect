@@ -23,11 +23,18 @@ const chatSlice = createSlice({
     },
 
     sendMessage(state, action) {
-      state.messages.push(action.payload);
+      /*state.messages.push(action.payload);
       localStorage.setItem(
         "chat",
         JSON.stringify({user:state.user, messages: state.messages})
-        )
+        )*/
+        socket.emit("send_message", {
+          sender: user.name,
+          text,
+          room: currentRoom,
+          timestamp: Date.now(),
+          
+        });
     },
 
     clearChat(state) {

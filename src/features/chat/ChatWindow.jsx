@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { sendMessage, setTypingUser, clearTypingUser } from "./chatSlice";
 import Message from "./Message";
+
+//socket server
+import socket from "../../app/socket";
+
+//fakeusers and replies 
 import fakeUsers from "../../data/FakeUsers";
 import fakeReplies from "../../data/fakeReply";
 
@@ -56,6 +61,14 @@ export default function ChatWindow() {
    bottomRef.current?.scrollIntoView({behaviour: "smooth"})
  },[messages]);
  
+ useEffect(() => {
+  socket.on("receive_message", (message) => {
+    dispatch(sendMessage(message));
+  });
+// listen incomming messages
+  return () => socket.off("receive_message");
+}, []);
+
   return (
     <div className="chat-window container relative mx-auto p-4">
       <div className="messages h-[70vh] overflow-y-auto mb-16">
