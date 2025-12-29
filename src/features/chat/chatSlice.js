@@ -1,12 +1,19 @@
 import { createSlice } from "@reduxjs/toolkit";
-
-const saved_chat= JSON.parse(localStorage.getItem("chat")) || {}
+import socket from "../../socket";
+const saved_chat = JSON.parse(localStorage.getItem("chat")) || {};
 
 const initialState = {
   user: {
-    name: {name: saved_chat.user?.name || ""},
+    name: { name: saved_chat.user?.name || "" },
   },
-  messages: saved_chat.messages || [],
+  currentRoom: saved_chat?.currentRoom || "General",
+  messages: saved_chat?.messages || [],
+  rooms: saved_chat?.rooms || {
+    General: { messages: [] },
+    Technology: { messages: [] },
+    Sports: { messages: [] },
+    Music: { messages: [] },
+  },
   userTyping: null,
 };
 
@@ -18,46 +25,58 @@ const chatSlice = createSlice({
       state.user.name = action.payload;
       localStorage.setItem(
         "chat",
-        JSON.stringify({user: state.user, messages: state.messages})
-        )
+        JSON.stringify({ user: state.user, messages: state.messages })
+      );
     },
 
     sendMessage(state, action) {
-      /*state.messages.push(action.payload);
+      state.messages.push(action.payload);
       localStorage.setItem(
         "chat",
         JSON.stringify({user:state.user, messages: state.messages})
-        )*/
-        socket.emit("send_message", {
-          sender: user.name,
-          text,
-          room: currentRoom,
-          timestamp: Date.now(),
-          
-        });
+      );
+      socket.emit("send_message", {
+        id: action.payload.id,
+        sender: state.user.name,
+        text: action.payload.text,
+        room: state.currentRoom,
+        timestamp: action.payload.timestamp,
+      });
     },
 
     clearChat(state) {
       state.messages = [];
-      localStorage.removeItem("chat")
+      localStorage.removeItem("chat");
     },
-    
-    setTypingUser(state, action){
-      state.userTyping=action.payload;
+
+    setRoom(state, action) {
+      state.currentRoom = action.payload;
+      localStorage.setItem(
+        "chatApp",
+        JSON.stringify({
+          user: state.user,
+          currentRoom: state.currentRoom,
+          rooms: state.rooms,
+        })
+      );
     },
-    
-    clearTypingUser(state){
-      state.userTyping=null;
-    }
+
+    setTypingUser(state, action) {
+      state.userTyping = action.payload;
+    },
+
+    clearTypingUser(state) {
+      state.userTyping = null;
+    },
   },
 });
 
-export const { 
-  setUsername, 
-  sendMessage, 
-  clearChat, 
-  setTypingUser, 
-  clearTypingUser 
-  
+export const {
+  setUsername,
+  sendMessage,
+  clearChat,
+  setRoom,
+  setTypingUser,
+  clearTypingUser,
 } = chatSlice.actions;
 export default chatSlice.reducer;

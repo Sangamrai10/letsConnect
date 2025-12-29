@@ -14,7 +14,7 @@ export default function UsernameForm({ onSubmit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="username-form flex flex-col items-center h-44">
+    <form onSubmit={handleSubmit} className="username-form flex flex-col justify-center items-center h-screen">
       <input
         type="text"
         placeholder="Enter your name"
