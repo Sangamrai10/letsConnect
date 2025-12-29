@@ -10,6 +10,7 @@ import socket from "../../socket";
 import fakeUsers from "../../data/FakeUsers";
 import fakeReplies from "../../data/fakeReply";
 import Rooms from "../../components/Rooms";
+import UserConnected from "../../components/UserConnected";
 
 export default function ChatWindow() {
   const messages = useSelector((state) => state.chat.messages);
@@ -90,6 +91,7 @@ export default function ChatWindow() {
               <em>{typingUser} is typing...</em>
             </div>
           )}
+          <UserConnected/>
           <input
             className="outline-none bg-gray-300 rounded-2xl p-2 px-4 w-3/4"
             type="text"
