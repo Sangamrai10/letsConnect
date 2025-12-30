@@ -1,8 +1,12 @@
 import { io } from "socket.io-client";
-import UserConnected from "./components/UserConnected";
 
-const socket = io("https://letsconnectserver.onrender.com",
-{transports: ["websocket"]}
-);
+const URL =
+  import.meta.env.MODE === "production"
+    ? import.meta.env.VITE_SOCKET_URL
+    : import.meta.env.VITE_LOCAL_SOCKET_URL;
+
+const socket = io(URL, {
+  transports: ["websocket"],
+});
 
 export default socket;

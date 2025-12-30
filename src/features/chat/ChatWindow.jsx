@@ -1,90 +1,117 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { sendMessage, setTypingUser, clearTypingUser } from "./chatSlice";
+import {
+  sendMessage,
+  setTypingUser,
+  clearTypingUser,
+} from "./chatSlice";
 import Message from "./Message";
-
-//socket server
-import socket from "../../socket";
-
-//fakeusers and replies 
-import fakeUsers from "../../data/FakeUsers";
-import fakeReplies from "../../data/fakeReply";
 import Rooms from "../../components/Rooms";
 import UserConnected from "../../components/UserConnected";
+import socket from "../../socket";
+import fakeUsers from "../../data/FakeUsers";
+import fakeReplies from "../../data/fakeReply";
 
 export default function ChatWindow() {
-  const messages = useSelector((state) => state.chat.messages);
-  const user = useSelector((state) => state.chat.user);
-  const typingUser = useSelector((state) => state.chat.userTyping);
+  const { user, currentRoom, messages, userTyping } = useSelector((state) => ({
+    user: state.chat.user,
+    currentRoom: state.chat.currentRoom,
+    messages: state.chat.rooms[state.chat.currentRoom]?.messages || [],
+    userTyping: state.chat.userTyping,
+  }));
+
   const dispatch = useDispatch();
-  const bottomRef = useRef(null)
+  const bottomRef = useRef(null);
   const [text, setText] = useState("");
-  const { currentRoom, rooms } = useSelector((state) => state.chat);
-  const roomMessages = rooms[currentRoom].messages;
   const [socketId, setSocketId] = useState("");
 
+  // Scroll to bottom
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, userTyping]);
 
-  // fake users and fake replies
+  // Set socket ID
+  useEffect(() => {
+    socket.on("connect", () => setSocketId(socket.id));
+    return () => socket.off("connect");
+  }, []);
+
+  // Join room whenever currentRoom changes
+  useEffect(() => {
+    socket.emit("join_room", currentRoom);
+  }, [currentRoom]);
+
+  // Receive messages
+  useEffect(() => {
+    const handleReceive = (message) => {
+      dispatch(sendMessage(message));
+    };
+    socket.on("receive_message", handleReceive);
+    return () => socket.off("receive_message", handleReceive);
+  }, [dispatch]);
+
+  // Receive bot messages
+  useEffect(() => {
+    const handleBotMessage = (botMessage) => {
+      dispatch(sendMessage(botMessage));
+    };
+    socket.on("bot_message", handleBotMessage);
+    return () => socket.off("bot_message", handleBotMessage);
+  }, [dispatch]);
+
+  // Helpers
   const getRandomUser = () =>
     fakeUsers[Math.floor(Math.random() * fakeUsers.length)];
-
   const randomReply = () =>
     fakeReplies[Math.floor(Math.random() * fakeReplies.length)];
 
-
+  // Send message
   const handleSend = (e) => {
     e.preventDefault();
     if (!text) return;
 
-    //user 
-    dispatch(
-      sendMessage({
-        id: Date.now() + Math.random(),
-        sender: user.name,
-        text,
-        timestamp: Date.now(),
-      })
-    );
+    const message = {
+      id: Date.now(),
+      sender: user.name,
+      text,
+      room: currentRoom,
+      timestamp: Date.now(),
+    };
+
+    // Emit to server
+    socket.emit("send_message", message);
+    dispatch(sendMessage(message));
     setText("");
 
-    const bots = getRandomUser()
-    dispatch(setTypingUser(bots))
-    //fake reply
+    // Bot simulation through server
+    const botUser = getRandomUser();
+    dispatch(setTypingUser(botUser));
+
     setTimeout(() => {
-      //clear typing indicator
-      dispatch(clearTypingUser())
+      dispatch(clearTypingUser());
 
-      dispatch(
-        sendMessage({
-          id: Date.now() + 1,
-          sender: bots,
-          text: randomReply(),
-          timestamp: Date.now(),
-        }))
+      const botText = randomReply();
+
+      const botMessage = {
+        id: Date.now(),
+        sender: botUser,
+        text: botText,
+        room: currentRoom,
+        timestamp: Date.now(),
+      };
+
+      // Emit to server for bot message
+      socket.emit("simulate_bot", botMessage);
+      
+      // Dispatch locally
+      dispatch(sendMessage(botMessage));
     }, 800 + Math.random() * 1200);
+
   };
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behaviour: "smooth" })
-  }, [messages, typingUser]);
-
-  useEffect(() => {
-    socket.on("connect", () => {
-      setSocketId(socket.id);
-    });
-  }, [socket.id]);
-
-  useEffect(() => {
-    socket.on("receive_message", (message) => {
-      dispatch(sendMessage(message));
-    });
-    // listen incomming messages
-    return () => socket.off("receive_message");
-  }, [dispatch]);
 
   return (
     <>
       <Rooms />
-
       <div className="chat-window container relative mx-auto p-4">
         <div className="messages h-[70vh] overflow-y-auto mb-16">
           {messages.map((msg) => (
@@ -92,13 +119,19 @@ export default function ChatWindow() {
           ))}
           <div ref={bottomRef} />
         </div>
-        <form onSubmit={handleSend} className="chat-input absolute bottom-0 text-center w-full p-4 bg-white">
-          {typingUser && (
+
+        <form
+          onSubmit={handleSend}
+          className="chat-input absolute bottom-0 text-center w-full p-4 bg-white"
+        >
+          {userTyping && (
             <div className="typing-indicator">
-              <em>{typingUser} is typing...</em>
+              <em>{userTyping} is typing...</em>
             </div>
           )}
+
           {socketId && <UserConnected socketId={socketId} />}
+
           <input
             className="outline-none bg-gray-300 rounded-2xl p-2 px-4 w-3/4"
             type="text"
@@ -106,7 +139,12 @@ export default function ChatWindow() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          <button type="submit" className="px-4 py-2 mx-2 bg-blue-500 rounded-2xl">Send</button>
+          <button
+            type="submit"
+            className="px-4 py-2 mx-2 bg-blue-500 rounded-2xl"
+          >
+            Send
+          </button>
         </form>
       </div>
     </>

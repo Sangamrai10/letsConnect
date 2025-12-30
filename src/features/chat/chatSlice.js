@@ -1,14 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import socket from "../../socket";
-const saved_chat = JSON.parse(localStorage.getItem("chat")) || {};
+
+const savedChat = JSON.parse(localStorage.getItem("chatApp")) || {};
 
 const initialState = {
-  user: {
-    name: { name: saved_chat.user?.name || "" },
-  },
-  currentRoom: saved_chat?.currentRoom || "General",
-  messages: saved_chat?.messages || [],
-  rooms: saved_chat?.rooms || {
+  user: { name: savedChat.user?.name || "" },
+  currentRoom: savedChat.currentRoom || "General",
+  messages: savedChat.messages || [],
+  rooms: savedChat.rooms || {
     General: { messages: [] },
     Technology: { messages: [] },
     Sports: { messages: [] },
@@ -23,42 +21,26 @@ const chatSlice = createSlice({
   reducers: {
     setUsername(state, action) {
       state.user.name = action.payload;
-      localStorage.setItem(
-        "chat",
-        JSON.stringify({ user: state.user, messages: state.messages })
-      );
+      localStorage.setItem("chatApp", JSON.stringify({ ...state }));
     },
 
     sendMessage(state, action) {
-      state.messages.push(action.payload);
-      localStorage.setItem(
-        "chat",
-        JSON.stringify({user:state.user, messages: state.messages})
-      );
-      socket.emit("send_message", {
-        id: action.payload.id,
-        sender: state.user.name,
-        text: action.payload.text,
-        room: state.currentRoom,
-        timestamp: action.payload.timestamp,
-      });
+      const msg = action.payload;
+      state.messages.push(msg);
+      if (!state.rooms[msg.room]) state.rooms[msg.room] = { messages: [] };
+      state.rooms[msg.room].messages.push(msg);
+      localStorage.setItem("chatApp", JSON.stringify({ ...state }));
     },
 
     clearChat(state) {
       state.messages = [];
-      localStorage.removeItem("chat");
+      Object.keys(state.rooms).forEach((room) => (state.rooms[room].messages = []));
+      localStorage.removeItem("chatApp");
     },
 
     setRoom(state, action) {
       state.currentRoom = action.payload;
-      localStorage.setItem(
-        "chatApp",
-        JSON.stringify({
-          user: state.user,
-          currentRoom: state.currentRoom,
-          rooms: state.rooms,
-        })
-      );
+      localStorage.setItem("chatApp", JSON.stringify({ ...state }));
     },
 
     setTypingUser(state, action) {
@@ -71,12 +53,6 @@ const chatSlice = createSlice({
   },
 });
 
-export const {
-  setUsername,
-  sendMessage,
-  clearChat,
-  setRoom,
-  setTypingUser,
-  clearTypingUser,
-} = chatSlice.actions;
+export const { setUsername, sendMessage, clearChat, setRoom, setTypingUser, clearTypingUser } =
+  chatSlice.actions;
 export default chatSlice.reducer;
