@@ -51,13 +51,14 @@ export default function ChatWindow() {
   }, [dispatch]);
 
   // Receive bot messages
-  useEffect(() => {
+  /*useEffect(() => {
     const handleBotMessage = (botMessage) => {
       dispatch(sendMessage(botMessage));
     };
+    
     socket.on("bot_message", handleBotMessage);
     return () => socket.off("bot_message", handleBotMessage);
-  }, [dispatch]);
+  }, [dispatch]);*/
 
   // Helpers
   const getRandomUser = () =>
@@ -69,7 +70,7 @@ export default function ChatWindow() {
   const handleSend = (e) => {
     e.preventDefault();
     if (!text) return;
-
+dispatch(setTypingUser(user.name));
     const message = {
       id: Date.now(),
       sender: user.name,
@@ -82,30 +83,7 @@ export default function ChatWindow() {
     socket.emit("send_message", message);
     dispatch(sendMessage(message));
     setText("");
-
-    // Bot simulation through server
-    const botUser = getRandomUser();
-    dispatch(setTypingUser(botUser));
-
-    setTimeout(() => {
-      dispatch(clearTypingUser());
-
-      const botText = randomReply();
-
-      const botMessage = {
-        id: Date.now(),
-        sender: botUser,
-        text: botText,
-        room: currentRoom,
-        timestamp: Date.now(),
-      };
-
-      // Emit to server for bot message
-      socket.emit("simulate_bot", botMessage);
-      
-      // Dispatch locally
-      dispatch(sendMessage(botMessage));
-    }, 800 + Math.random() * 1200);
+    dispatch(clearTypingUser)
 
   };
 
